@@ -1005,6 +1005,8 @@ function Gladdy:UpdateGUID(guid, uid)
 end
 
 function Gladdy:EnemySpotted(name, guid, class, classLoc, raceLoc)
+	if name == "Unknown" then return end
+
     local unit = "arena" .. self.curUnit
     self.curUnit = self.curUnit + 1
     self.guids[guid] = unit
