@@ -176,7 +176,7 @@ function Diminishings:ResetUnit(unit)
     for i = 1, 16 do
         local icon = drFrame["icon" .. i]
         icon.active = false
-        icon.timeLeft = 1
+        icon.timeLeft = 0
         icon.texture:SetTexture("")
         icon.text:SetText("")
         icon.timeText:SetText("")
@@ -209,9 +209,7 @@ function Diminishings:Fade(unit, spell)
             icon.timeLeft = 15
             icon.texture:SetTexture(self.icons[spell])
             icon.active = true
-
             self:Positionate(unit)
-
             icon:SetAlpha(1)
             break
         end
