@@ -72,10 +72,6 @@ function Diminishings:CreateFrame(unit)
         icon:EnableMouse(false)
         icon:SetFrameStrata("BACKGROUND")
         icon.texture = _G[icon:GetName() .. "Icon"]
-        icon.cooldown = _G[icon:GetName() .. "Cooldown"]
-        icon.cooldown:SetReverse(false)
-        icon.cooldown:SetFrameStrata("BACKGROUND")
-        icon.cooldown.noCooldownCount = true -- We have own timer
         icon:SetScript("OnUpdate", function(self, elapsed)
             if (self.active) then
                 if (self.timeLeft <= 0) then
@@ -85,7 +81,6 @@ function Diminishings:CreateFrame(unit)
 
                     self.active = false
                     self.dr = nil
-                    self.cooldown:SetCooldown(GetTime(), 0)
                     self.texture:SetTexture("")
                     self.text:SetText("")
                     self:SetAlpha(0)
@@ -93,7 +88,7 @@ function Diminishings:CreateFrame(unit)
                     Diminishings:Positionate(unit)
                 else
                     self.timeLeft = self.timeLeft - elapsed
-                    self.timeText:SetFormattedText("%d", self.timeLeft)
+                    self.timeText:SetFormattedText("%d", self.timeLeft+1)
                 end
             end
         end)
@@ -114,7 +109,7 @@ function Diminishings:CreateFrame(unit)
         icon.timeText:SetShadowOffset(1, -1)
         icon.timeText:SetShadowColor(0, 0, 0, 1)
         icon.timeText:SetJustifyH("CENTER")
-        icon.timeText:SetPoint("BOTTOM")
+        icon.timeText:SetPoint("CENTER")
 
         drFrame["icon" .. i] = icon
     end
@@ -181,7 +176,7 @@ function Diminishings:ResetUnit(unit)
     for i = 1, 16 do
         local icon = drFrame["icon" .. i]
         icon.active = false
-        icon.timeLeft = 0
+        icon.timeLeft = 1
         icon.texture:SetTexture("")
         icon.text:SetText("")
         icon.timeText:SetText("")
@@ -212,7 +207,6 @@ function Diminishings:Fade(unit, spell)
         if (not icon.active or (icon.dr and icon.dr == dr)) then
             icon.dr = dr
             icon.timeLeft = 15
-            icon.cooldown:SetCooldown(GetTime(), 15)
             icon.texture:SetTexture(self.icons[spell])
             icon.active = true
 
