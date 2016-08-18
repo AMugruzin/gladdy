@@ -8,7 +8,7 @@ local L = Gladdy.L
 local Nameplates = Gladdy:NewModule("Nameplates", nil, {
     npTotems = true,
     npCastbars = true,
-    npCastbarGuess = true,
+    npCastbarGuess = false,
 })
 LibStub("AceHook-3.0"):Embed(Nameplates)
 LibStub("AceTimer-3.0"):Embed(Nameplates)

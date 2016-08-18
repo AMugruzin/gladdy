@@ -215,6 +215,7 @@ local function CastBars_Create()
 end
 
 local function keepCastbar(unit, elapsed)
+
 	local Texture = _G[AddOn .. "_Texture_" .. unit .. "CastBar_CastBar"]
 	local CastTime = _G[AddOn .. "_FontString_" .. unit .. "CastBar_CastTime"]
 	local CastBar = _G[AddOn .. "_Frame_" .. unit .. "CastBar"]
@@ -224,6 +225,11 @@ local function keepCastbar(unit, elapsed)
 	local CastTime = _G[AddOn .. "_FontString_" .. unit .. "CastBar_CastTime"]
 	local Icon = _G[AddOn .. "_Texture_" .. unit .. "CastBar_Icon"]
 	local Width = _G[AddOn .. "_SavedVariables"]["CastBar"]["Width"]
+	
+	if( Gladdy.db.npCastbarGuess == false ) then
+		CastBar:SetAlpha(0)
+		CastBar:Hide()
+	end
 	
 	if Texture.castTime and Texture.castTime < Texture.maxCastTime then
 		local total = string.format("%.2f",Texture.maxCastTime)
@@ -246,12 +252,6 @@ local function keepCastbar(unit, elapsed)
 			if(plate:IsVisible() and oldname:GetText() == CastBar.name) then
 				found = true
 				CastBar:SetPoint("TOP",hpborder,"BOTTOM",6,-4.5)
-				-- want castbars to disappear when a unit disappears/stops casting? delete 3 rows below
-				if( Gladdy.db.npCastbarGuess ) then
-					CastBar:SetParent(plate)
-					CastBar:SetAlpha(1)
-					CastBar:Show()
-				end
 			end
 		end
 		if not found then
