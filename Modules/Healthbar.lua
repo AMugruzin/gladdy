@@ -37,7 +37,12 @@ function Healthbar:CreateFrame(unit)
     healthBar.bg:SetAlpha(.3)
 
     healthBar.nameText = healthBar:CreateFontString(nil, "LOW")
-    healthBar.nameText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
+    if( Gladdy.db.healthBarFontSize < 1 ) then
+    	healthBar.nameText:SetFont(Gladdy.LSM:Fetch("font"), 1)
+    	healthBar.nameText:Hide()
+    else
+    	healthBar.nameText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
+    end
     healthBar.nameText:SetTextColor(Gladdy.db.healthBarFontColor.r, Gladdy.db.healthBarFontColor.g, Gladdy.db.healthBarFontColor.b, Gladdy.db.healthBarFontColor.a)
     healthBar.nameText:SetShadowOffset(1, -1)
     healthBar.nameText:SetShadowColor(0, 0, 0, 1)
@@ -45,7 +50,12 @@ function Healthbar:CreateFrame(unit)
     healthBar.nameText:SetPoint("LEFT", 5, 0)
 
     healthBar.healthText = healthBar:CreateFontString(nil, "LOW")
-    healthBar.healthText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
+    if( Gladdy.db.healthBarFontSize < 1 ) then
+    	healthBar.healthText:SetFont(Gladdy.LSM:Fetch("font"), 1)
+    	healthBar.healthText:Hide()
+    else
+    	healthBar.healthText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
+    end	
     healthBar.healthText:SetTextColor(Gladdy.db.healthBarFontColor.r, Gladdy.db.healthBarFontColor.g, Gladdy.db.healthBarFontColor.b, Gladdy.db.healthBarFontColor.a)
     healthBar.healthText:SetShadowOffset(1, -1)
     healthBar.healthText:SetShadowColor(0, 0, 0, 1)
@@ -69,9 +79,16 @@ function Healthbar:UpdateFrame(unit)
     healthBar:SetPoint("TOPLEFT", Gladdy.buttons[unit], "TOPLEFT", iconSize, 0)
     healthBar:SetPoint("BOTTOMRIGHT", Gladdy.buttons[unit], "BOTTOMRIGHT")
 
-    healthBar.nameText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
+	if(Gladdy.db.healthBarFontSize < 1) then
+		healthBar.nameText:SetFont(Gladdy.LSM:Fetch("font"), 1)
+	    healthBar.healthText:SetFont(Gladdy.LSM:Fetch("font"), 1)
+	    healthBar.nameText:Hide()
+	    healthBar.healthText:Hide()
+	else
+	    healthBar.nameText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
+	    healthBar.healthText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
+    end
     healthBar.nameText:SetTextColor(Gladdy.db.healthBarFontColor.r, Gladdy.db.healthBarFontColor.g, Gladdy.db.healthBarFontColor.b, Gladdy.db.healthBarFontColor.a)
-    healthBar.healthText:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.healthBarFontSize)
     healthBar.healthText:SetTextColor(Gladdy.db.healthBarFontColor.r, Gladdy.db.healthBarFontColor.g, Gladdy.db.healthBarFontColor.b, Gladdy.db.healthBarFontColor.a)
 end
 
@@ -214,7 +231,7 @@ function Healthbar:GetOptions()
             name = L["Font size"],
             desc = L["Size of the text"],
             order = 5,
-            min = 1,
+            min = 0,
             max = 20,
         }),
         healthActual = option({

@@ -7,7 +7,8 @@ local GetTime = GetTime
 local Gladdy = LibStub("Gladdy")
 local L = Gladdy.L
 Trinket = Gladdy:NewModule("Trinket", nil, {
-    trinketDisableOmniCC = false,
+	trinketEnabled = true,
+    trinketDisableOmniCC = false
 })
 LibStub("AceComm-3.0"):Embed(Trinket)
 
@@ -51,11 +52,20 @@ function Trinket:UpdateFrame(unit)
     trinket.cooldown:SetHeight(classIcon:GetWidth())
 
     trinket:ClearAllPoints()
-    trinket:SetPoint("TOPLEFT", trinket:GetParent(), "TOPRIGHT", 2, 0)
+    if( Gladdy.db.classIconPos == "LEFT" ) then
+	    trinket:SetPoint("TOPLEFT", Gladdy.buttons[unit], "TOPRIGHT", 2, 0)
+	else
+		trinket:SetPoint("TOPLEFT", Gladdy.buttons[unit], "TOPLEFT", -2, 0)    	
+    end
     trinket.cooldown:ClearAllPoints()
     trinket.cooldown:SetAllPoints(trinket)
-
     trinket.cooldown.noCooldownCount = Gladdy.db.trinketDisableOmniCC
+    
+    if( Gladdy.db.trinketEnabled == false ) then
+    	trinket:Hide()
+    else	
+    	trinket:Show()
+    end
 end
 
 function Trinket:Reset()
@@ -130,11 +140,17 @@ end
 
 function Trinket:GetOptions()
     return {
+   		trinketEnabled = option({
+            type = "toggle",
+            name = L["Enabled"],
+            desc = L["Enable trinket icon"],
+            order = 2,
+        }),
         trinketDisableOmniCC = option({
             type = "toggle",
-            name = L["No cooldown count (OmniCC)"],
+            name = L["No OmniCC"],
             desc = L["Disable cooldown timers by addons (reload UI to take effect)"],
-            order = 2,
+            order = 3,
         }),
     }
 end

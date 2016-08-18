@@ -13,6 +13,7 @@ local Diminishings = Gladdy:NewModule("Diminishings", nil, {
     drFontSize = 20,
     drCooldownPos = "LEFT",
     drIconSize = 30,
+    drEnabled = true
 })
 
 local function StyleActionButton(f)
@@ -66,7 +67,7 @@ end
 function Diminishings:CreateFrame(unit)
     local drFrame = CreateFrame("Frame", nil, Gladdy.buttons[unit])
 
-    for i = 1, 16 do
+	for i = 1, 16 do
         local icon = CreateFrame("CheckButton", "GladdyDr" .. unit .. "Icon" .. i, drFrame, "ActionButtonTemplate")
         icon:SetAlpha(0)
         icon:EnableMouse(false)
@@ -123,6 +124,11 @@ end
 function Diminishings:UpdateFrame(unit)
     local drFrame = self.frames[unit]
     if (not drFrame) then return end
+    
+    if( Gladdy.db.drEnabled == false ) then
+    	drFrame:Hide()
+    	return
+    end
 
     local margin = max(5, Gladdy.db.padding)
     local offset = Gladdy.db.healthBarHeight + Gladdy.db.powerBarHeight
@@ -294,18 +300,24 @@ end
 
 function Diminishings:GetOptions()
     return {
+    	drEnabled = option({
+            type = "toggle",
+            name = L["Enable"],
+            desc = L["Enabled DR module"],
+            order = 2,
+        }),
         drFontColor = colorOption({
             type = "color",
             name = L["Font color"],
             desc = L["Color of the text"],
-            order = 2,
+            order = 3,
             hasAlpha = true,
         }),
         drFontSize = option({
             type = "range",
             name = L["Font size"],
             desc = L["Size of the text"],
-            order = 3,
+            order = 4,
             min = 1,
             max = 20,
         }),
@@ -313,7 +325,7 @@ function Diminishings:GetOptions()
             type = "select",
             name = L["DR Cooldown position"],
             desc = L["Position of the cooldown icons"],
-            order = 4,
+            order = 5,
             values = {
                 ["LEFT"] = L["Left"],
                 ["RIGHT"] = L["Right"],
@@ -323,7 +335,7 @@ function Diminishings:GetOptions()
             type = "range",
             name = L["Icon Size"],
             desc = L["Size of the DR Icons"],
-            order = 5,
+            order = 6,
             min = 5,
             max = 100,
             step = 1,

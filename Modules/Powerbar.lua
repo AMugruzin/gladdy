@@ -213,7 +213,7 @@ function Powerbar:GetOptions()
             name = L["Bar height"],
             desc = L["Height of the bar"],
             order = 2,
-            min = 10,
+            min = 0,
             max = 50,
             step = 1,
         }),

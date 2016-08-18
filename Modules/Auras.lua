@@ -22,8 +22,9 @@ end
 
 function Auras:CreateFrame(unit)
     local auraFrame = CreateFrame("Frame", nil, Gladdy.buttons[unit])
+    local classIcon = Gladdy.modules.Classicon.frames[unit]
     auraFrame:ClearAllPoints()
-    auraFrame:SetPoint("TOPLEFT", auraFrame:GetParent(), "TOPLEFT", -2, 0)
+    auraFrame:SetAllPoints(classIcon)
     auraFrame:SetScript("OnUpdate", function(self, elapsed)
         if (self.active) then
             if (self.timeLeft <= 0) then
@@ -58,6 +59,7 @@ function Auras:UpdateFrame(unit)
 
     auraFrame:SetWidth(classIcon:GetWidth())
     auraFrame:SetHeight(classIcon:GetHeight())
+    auraFrame:SetAllPoints(classIcon)
 
     auraFrame.text:SetFont(Gladdy.LSM:Fetch("font"), Gladdy.db.auraFontSize)
     auraFrame.text:SetTextColor(Gladdy.db.auraFontColor.r, Gladdy.db.auraFontColor.g, Gladdy.db.auraFontColor.b, Gladdy.db.auraFontColor.a)
