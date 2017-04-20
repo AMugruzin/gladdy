@@ -118,6 +118,7 @@ local totems = {
 }
 
 function Nameplates:Initialise()
+	self:SetScript("OnUpdate", self.Update)
     self:RegisterMessage("JOINED_ARENA")
     self.numChildren = 0
 end
@@ -146,7 +147,7 @@ function Nameplates:GetOptions()
     return {
         npTotems = option({
             type = "toggle",
-            name = L["Totem icons on/off"],
+            name = L["Totem icons on/off (works only WITHOUT Aloft)"],
             desc = L["Turns totem icons instead of nameplates on or off. (Requires reload)"],
             order = 2,
         }),
@@ -164,7 +165,7 @@ function Nameplates:GetOptions()
 end
 
 function Nameplates:JOINED_ARENA()
-    self:ScheduleRepeatingTimer("Update", 0.1, self)
+
 end
 
 function Nameplates:Reset()
@@ -176,18 +177,14 @@ end
 function Nameplates:Update()
     if ( WorldFrame:GetNumChildren() ~= self.numChildren ) then
 		self.numChildren = WorldFrame:GetNumChildren()
-		if Gladdy.db.npTotems then
+		if Gladdy.db.npTotems and not IsAddOnLoaded("Aloft") then
 			self:HookTotems(WorldFrame:GetChildren())
 		end			
 	end
 end
 
-function Nameplates:UpdateFrames(...)
-    
-end
-
 local function UpdateTotems(hp)
-	frame = hp:GetParent()
+	local frame = hp:GetParent()
 	local hpborder, cbborder, cbicon, overlay, oldname, level, bossicon, raidicon = frame:GetRegions()
 	--local overlayRegion, castBarOverlayRegion, spellIconRegion, highlightRegion, nameTextRegion, bossIconRegion, levelTextRegion, raidIconRegion = frame:GetRegions()
 	local name = oldname:GetText()
@@ -211,16 +208,8 @@ local function UpdateTotems(hp)
 			frame.totem:SetWidth(64)
 			frame.totem:SetHeight(64)
 			break
-		elseif ( name == totem ) then
-			overlay:SetAlpha(0) 
-			hpborder:Hide()
-			oldname:Hide()
-			level:Hide()
-			hp:SetAlpha(0)
-			raidicon:Hide()
-			break
 		else
-			overlay:SetAlpha(1) 
+			overlay:SetAlpha(1)
 			hpborder:Show()
 			oldname:Show()
 			level:Show()
@@ -234,12 +223,6 @@ function Nameplates:SkinTotems(frame)
 	local HealthBar, CastBar = frame:GetChildren()
 	--local threat, hpborder, cbshield, cbborder, cbicon, overlay, oldname, level, bossicon, raidicon, elite = frame:GetRegions()
 	local overlayRegion, castBarOverlayRegion, spellIconRegion, highlightRegion, nameTextRegion, bossIconRegion, levelTextRegion, raidIconRegion = frame:GetRegions()
-
-	HealthBar:SetScript("OnShow", UpdateTotems)
-	HealthBar:SetScript("OnSizeChanged", UpdateTotems)
-	if HealthBar == nil then
-		Gladdy:Print("hp null")
-	end
 	UpdateTotems(HealthBar)
 	totems["Nameplates"][frame] = true
 end

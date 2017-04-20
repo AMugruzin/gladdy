@@ -40,6 +40,18 @@ local CombatLog_Object_IsA = CombatLog_Object_IsA
 local COMBATLOG_OBJECT_TARGET = COMBATLOG_OBJECT_TARGET
 local COMBATLOG_OBJECT_FOCUS = COMBATLOG_OBJECT_FOCUS
 
+local channelSpells ={
+    [GetSpellInfo(15407)] = true,
+    [GetSpellInfo(10)] = true,
+    [GetSpellInfo(5740)] = true,
+    [GetSpellInfo(1949)] = true,
+    [GetSpellInfo(740)] = true,
+    [GetSpellInfo(689)] = true,
+    [GetSpellInfo(5138)] = true,
+    [GetSpellInfo(12051)] = true,
+    [GetSpellInfo(5143)] = true,
+}
+
 local unitsToCheck = {
   ["mouseovertarget"] = true,
   ["mouseovertargettarget"] = true,
@@ -404,6 +416,7 @@ function Gladdy:JoinedArena()
     self:RegisterEvent("UNIT_TARGET")
 
     self:ScheduleRepeatingTimer("UpdateUnits", 0.25, self)
+    self:ScheduleRepeatingTimer("UpdateCastBars", 0.01, self)
     self:RegisterComm("Gladdy")
 
     for i = 1, MAX_BATTLEFIELD_QUEUES do
@@ -524,9 +537,8 @@ function Gladdy:UNIT_SPELLCAST_START(event, uid)
 
     local spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(uid)
     if not endTime then return end
-    local value = (endTime / 1000) - GetTime()
+    local value = (startTime / 1000) - GetTime()
     local maxValue = (endTime - startTime) / 1000
-
     self:CastStart(button.unit, spell, icon, value, maxValue, "cast")
 end
 
@@ -545,7 +557,6 @@ end
 function Gladdy:UNIT_SPELLCAST_SUCCEEDED(event, uid, spell)
     local button = self:GetButton(uid)
     if (not button) then return end
-
     self:CastSuccess(button.unit, spell)
 end
 
@@ -570,11 +581,10 @@ end
 function Gladdy:UNIT_SPELLCAST_STOP(event, uid)
     local button = self:GetButton(uid)
     if (not button) then return end
-
     self:SendMessage("CAST_STOP", button.unit)
 end
 
-function Gladdy:COMBAT_LOG_EVENT_UNFILTERED(event, timestamp, eventType, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, ...) 
+function Gladdy:COMBAT_LOG_EVENT_UNFILTERED(event, timestamp, eventType, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, ...)
     local srcUnit = self.guids[sourceGUID]
     local destUnit = self.guids[destGUID]
     if (not srcUnit and not destUnit) then return end
@@ -671,7 +681,6 @@ function Gladdy:COMBAT_LOG_EVENT_UNFILTERED(event, timestamp, eventType, sourceG
         if (not fromTarget and not fromFocus) then
             local icon = select(3, GetSpellInfo(spellID))
             local castTime = self.CAST_TIMES[spellName] or select(7, GetSpellInfo(spellID)) / 1000
-
             self:CastStart(srcUnit, spellName, icon, 0, castTime, "cast")
         end
     elseif (eventType == "CASTSUCCESS" and srcUnit) then
@@ -681,10 +690,10 @@ function Gladdy:COMBAT_LOG_EVENT_UNFILTERED(event, timestamp, eventType, sourceG
         local fromFocus = CombatLog_Object_IsA(sourceFlags, COMBATLOG_OBJECT_FOCUS)
 
         if (not fromTarget and not fromFocus) then
-            self:SendMessage("CAST_END", srcUnit)
+            self:SendMessage("CAST_STOP", srcUnit)
         end
     elseif (eventType == "INTERRUPT" and srcUnit) then
-        self:SendMessage("CAST_END", srcUnit)
+        self:SendMessage("CAST_STOP", srcUnit)
     end
 	
 	-- cooldown tracker
@@ -704,9 +713,29 @@ function Gladdy:COMBAT_LOG_EVENT_UNFILTERED(event, timestamp, eventType, sourceG
 end
 
 function Gladdy:UpdateUnits()
-	for k,v in pairs(unitsToCheck) do
-		self:UpdateUnit(k);
+	for unit,v in pairs(unitsToCheck) do
+		self:UpdateUnit(unit);
 	end
+end
+
+
+function Gladdy:UpdateCastBars()
+
+    for unit,v in pairs(unitsToCheck) do
+        local guid = UnitGUID(unit)
+        if guid and self:IsValid(unit) then
+
+            local spell, rank, displayName, icon, startTime, endTime
+            local event = "UNIT_SPELLCAST_DELAYED"
+
+            -- try to have a backup in case server returns UnitCastingInfo data when it should be UnitChannelInfo
+            if not spell or channelSpells[spell] then
+                spell = UnitChannelInfo(unit)
+                event = "UNIT_SPELLCAST_CHANNEL_UPDATE"
+            end
+            if spell then self:UNIT_SPELLCAST_DELAYED(event, unit) end
+        end
+    end
 end
 
 function Gladdy:UpdateUnit(unit)
@@ -841,7 +870,6 @@ function Gladdy:CastStart(unit, spell, icon, value, maxValue, event)
     elseif (button.fd and self.SUMMON[spell]) then
         maxValue = 0.5
     end
-
     self:SendMessage("CAST_START", unit, spell, icon, value, maxValue, event)
     self:DetectSpec(unit, self.specSpells[spell])
 end
@@ -1005,7 +1033,9 @@ function Gladdy:UpdateGUID(guid, uid)
 end
 
 function Gladdy:EnemySpotted(name, guid, class, classLoc, raceLoc)
-	if name == "Unknown" then return end
+	if name == "Unknown" or self:IsInParty(guid) then
+        return
+    end
 
     local unit = "arena" .. self.curUnit
     self.curUnit = self.curUnit + 1
@@ -1025,6 +1055,20 @@ function Gladdy:EnemySpotted(name, guid, class, classLoc, raceLoc)
     button:SetAlpha(1)
 
     return unit
+end
+
+function Gladdy:IsInParty(guid)
+    for i=1, GetNumPartyMembers() do
+        if guid == UnitGUID("party" .. i) then
+            return true
+        end
+    end
+    for i=1, GetNumRaidMembers() do
+        if guid == UnitGUID("raid" .. i) then
+            return true
+        end
+    end
+    return false
 end
 
 function Gladdy:CooldownUsed(unit, unitClass, spellId, spellName)
