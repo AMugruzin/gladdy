@@ -53,6 +53,7 @@ local channelSpells ={
 }
 
 local unitsToCheck = {
+  ["mouseover"] = true,
   ["mouseovertarget"] = true,
   ["mouseovertargettarget"] = true,
   ["targettarget"] = true,
@@ -721,19 +722,34 @@ end
 
 function Gladdy:UpdateCastBars()
 
-    for unit,v in pairs(unitsToCheck) do
-        local guid = UnitGUID(unit)
-        if guid and self:IsValid(unit) then
+    --[[
+        above can randomly start casts, but we also need to stop the casts, if we lose all information
+        information can either be lost by losing the unit (e.g. your pet doesn't target the player anymore)
+        or they stop the actual cast. therefore sometimes the castbar may disappear, even though the player hasn't stopped the cast
+     ]]
+    for i=1,5 do
+        local button = self.buttons["arena"..i]
+        if button and button.guid ~= UnitGUID("target") and button.guid ~= UnitGUID("focus") then
+            local spell, rank, displayName, icon, startTime, endTime, event
 
-            local spell, rank, displayName, icon, startTime, endTime
-            local event = "UNIT_SPELLCAST_DELAYED"
-
-            -- try to have a backup in case server returns UnitCastingInfo data when it should be UnitChannelInfo
-            if not spell or channelSpells[spell] then
-                spell = UnitChannelInfo(unit)
-                event = "UNIT_SPELLCAST_CHANNEL_UPDATE"
+            -- check if any relevant unit that isn't target or focus, but still equal to arena1-5 is casting
+            for uid,v in pairs(unitsToCheck) do
+                if button.guid == UnitGUID(uid) then
+                    spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(uid)
+                    event = "cast"
+                    -- try to have a backup in case server returns UnitCastingInfo data when it should be UnitChannelInfo
+                    if not spell or channelSpells[spell] then
+                        spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(uid)
+                        event = "channel"
+                    end
+                end
             end
-            if spell then self:UNIT_SPELLCAST_DELAYED(event, unit) end
+
+            if spell then
+                self:SendMessage("CAST_START", button.unit, spell, icon, GetTime() - (startTime / 1000), (endTime - startTime) / 1000, event)
+            elseif not spell and not self.db.castBarGuesses then
+                self:SendMessage("CAST_STOP", button.unit)
+            end
         end
     end
 end
@@ -796,7 +812,7 @@ function Gladdy:OnCommReceived(prefix, message, dest, sender)
         local name, guid, class, classLoc, raceLoc, spec, health, healthMax, power, powerMax, powerType = strsplit(',', message)
         health, healthMax = tonumber(health), tonumber(healthMax)
         power, powerMax, powerType = tonumber(power), tonumber(powerMax), tonumber(powerType)
-		if name == UnitName("party1") or name == UnitName("party2") then return end
+		if self:IsInParty(guid) then return end
         local unit = self.guids[guid]
         if (not unit) then
             unit = self:EnemySpotted(name, guid, class, classLoc, raceLoc)

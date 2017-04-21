@@ -158,8 +158,9 @@ function Nameplates:GetOptions()
         }),
         npCastbarGuess = option({
             type = "toggle",
-            name = L["Castbars guesses on/off"],
-            desc = L["If disabled, castbars will disappear as soon as you lose your 'unit', e.g. mouseover or change your target"],
+            name = L["Castbar guesses on/off"],
+			desc = L["If disabled, castbars will stop as soon as you lose your 'unit', e.g. mouseover or your party targeting someone else."
+					.."\nDisable this, if you see castbars, even though the player isn't casting."],
         }),
     }
 end
