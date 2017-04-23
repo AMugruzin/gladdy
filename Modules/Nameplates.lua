@@ -209,6 +209,14 @@ local function UpdateTotems(hp)
 			frame.totem:SetWidth(64)
 			frame.totem:SetHeight(64)
 			break
+		elseif ( name == totem ) then
+			overlay:SetAlpha(0)
+			hpborder:Hide()
+			oldname:Hide()
+			level:Hide()
+			hp:SetAlpha(0)
+			raidicon:Hide()
+			break
 		else
 			overlay:SetAlpha(1)
 			hpborder:Show()
@@ -224,6 +232,8 @@ function Nameplates:SkinTotems(frame)
 	local HealthBar, CastBar = frame:GetChildren()
 	--local threat, hpborder, cbshield, cbborder, cbicon, overlay, oldname, level, bossicon, raidicon, elite = frame:GetRegions()
 	local overlayRegion, castBarOverlayRegion, spellIconRegion, highlightRegion, nameTextRegion, bossIconRegion, levelTextRegion, raidIconRegion = frame:GetRegions()
+	HealthBar:SetScript("OnShow", UpdateTotems)
+	HealthBar:SetScript("OnSizeChanged", UpdateTotems)
 	UpdateTotems(HealthBar)
 	totems["Nameplates"][frame] = true
 end
