@@ -417,7 +417,7 @@ function Gladdy:JoinedArena()
     self:RegisterEvent("UNIT_TARGET")
 
     self:ScheduleRepeatingTimer("UpdateUnits", 0.25, self)
-    self:ScheduleRepeatingTimer("UpdateCastBars", 0.01, self)
+    self:ScheduleRepeatingTimer("UpdateCastBars", 0.05, self)
     self:RegisterComm("Gladdy")
 
     for i = 1, MAX_BATTLEFIELD_QUEUES do

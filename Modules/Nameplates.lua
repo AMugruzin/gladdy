@@ -118,9 +118,8 @@ local totems = {
 }
 
 function Nameplates:Initialise()
-	self:SetScript("OnUpdate", self.Update)
-    self:RegisterMessage("JOINED_ARENA")
     self.numChildren = 0
+	self:SetScript("OnUpdate", self.Update)
 end
 
 local function option(params)
@@ -163,10 +162,6 @@ function Nameplates:GetOptions()
 					.."\nDisable this, if you see castbars, even though the player isn't casting."],
         }),
     }
-end
-
-function Nameplates:JOINED_ARENA()
-
 end
 
 function Nameplates:Reset()
