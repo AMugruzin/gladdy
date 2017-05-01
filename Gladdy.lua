@@ -566,15 +566,17 @@ function Gladdy:UNIT_SPELLCAST_DELAYED(event, uid)
     if (not button) then return end
 
     local spell, rank, displayName, icon, startTime, endTime
-
+    local value
     if (event == "UNIT_SPELLCAST_DELAYED") then
         spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(uid)
+        value = GetTime() - (startTime / 1000)
     else
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(uid)
+        value = (endTime / 1000) - GetTime()
     end
 
     local castBar = Gladdy.modules.Castbar.frames[button.unit]
-    castBar.value = GetTime() - (startTime / 1000)
+    castBar.value = value
     castBar.maxValue = (endTime - startTime) / 1000
     castBar:SetMinMaxValues(0, castBar.maxValue)
 end
@@ -731,22 +733,24 @@ function Gladdy:UpdateCastBars()
         local button = self.buttons["arena"..i]
         if button and button.guid ~= UnitGUID("target") and button.guid ~= UnitGUID("focus") then
             local spell, rank, displayName, icon, startTime, endTime, event
-
+            local value
             -- check if any relevant unit that isn't target or focus, but still equal to arena1-5 is casting
             for uid,v in pairs(unitsToCheck) do
                 if button.guid == UnitGUID(uid) then
                     spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(uid)
                     event = "cast"
+                    if startTime then value = GetTime() - (startTime / 1000) end
                     -- try to have a backup in case server returns UnitCastingInfo data when it should be UnitChannelInfo
                     if not spell or channelSpells[spell] then
                         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(uid)
+                        if endTime then value = (endTime / 1000) - GetTime() end
                         event = "channel"
                     end
                 end
             end
 
             if spell then
-                self:SendMessage("CAST_START", button.unit, spell, icon, GetTime() - (startTime / 1000), (endTime - startTime) / 1000, event)
+                self:SendMessage("CAST_START", button.unit, spell, icon, value, (endTime - startTime) / 1000, event)
             elseif not spell and not self.db.castBarGuesses then
                 self:SendMessage("CAST_STOP", button.unit)
             end
